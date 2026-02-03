@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Eine Frage… 💘</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#1a0f2e;
+      --card:#ffffff10;
+      --stroke:#ffffff26;
+      --text:#f8fafc;
+      --muted:#cbd5e1;
+      --yes:#ff3d7f;
+      --yes2:#ff7aa8;
+      --no:#e2e8f0;
+      --noText:#0f172a;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      padding:16px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 10%, #ff3d7f22, transparent 60%),
+        radial-gradient(900px 600px at 80% 20%, #7c3aed22, transparent 55%),
+        radial-gradient(1200px 800px at 50% 100%, #22c55e18, transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+
+    .hearts{ position:fixed; inset:0; pointer-events:none; opacity:.22; }
+    .heart{
+      position:absolute;
+      width:16px; height:16px;
+      transform: rotate(45deg);
+      background: linear-gradient(135deg, var(--yes), #a855f7);
+      animation: floatUp linear infinite;
+      border-radius: 3px;
+    }
+    .heart:before,.heart:after{
+      content:""; position:absolute; width:16px; height:16px;
+      background: inherit; border-radius: 50%;
+    }
+    .heart:before{ left:-8px; top:0;}
+    .heart:after{ left:0; top:-8px;}
+    @keyframes floatUp{
+      from{ transform: translateY(110vh) rotate(45deg); }
+      to{ transform: translateY(-20vh) rotate(45deg); }
+    }
+
+    #confettiCanvas{
+      position:fixed; inset:0;
+      width:100vw; height:100vh;
+      pointer-events:none; z-index:9999;
+    }
+
+    .card{
+      width:min(760px, 94vw);
+      padding:28px 22px;
+      border-radius:26px;
+      background: var(--card);
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      text-align:center;
+    }
+
+    .hero{
+      width:min(220px,62%);
+      margin:4px auto 10px;
+      padding:10px;
+      border-radius:22px;
+      background: linear-gradient(135deg, #ffffff12, #ffffff06);
+      border:1px solid #ffffff22;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.28),
+        0 0 0 6px rgba(255,61,127,.08);
+    }
+    .hero img{
+      width:100%;
+      display:block;
+      border-radius:16px;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,.35));
+    }
+
+    .badge{
+      display:inline-block;
+      margin:6px auto;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:800;
+      background: linear-gradient(135deg, #ff3d7f, #a855f7);
+    }
+
+    h1{ margin:10px 0 12px; font-size: clamp(28px,4.5vw,52px); }
+
+    .button-zone{
+      position:relative;
+      width:min(520px,92%);
+      height:150px;
+      margin:0 auto;
+    }
+
+    button{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      padding:16px 24px;
+      border:none;
+      border-radius:999px;
+      font-weight:900;
+      font-size:18px;
+      cursor:pointer;
+      box-shadow:0 12px 26px rgba(0,0,0,.35);
+      transition:transform .15s ease;
+      touch-action:manipulation;
+    }
+
+    #yesBtn{
+      left:18%;
+      color:white;
+      background: linear-gradient(135deg, var(--yes), var(--yes2));
+    }
+    #noBtn{
+      left:62%;
+      color:var(--noText);
+      background: var(--no);
+    }
+
+    .hint{ margin-top:12px; font-size:13px; opacity:.8; }
+
+    .result{ display:none; margin-top:18px; }
+    .cta{
+      display:inline-block;
+      margin-top:14px;
+      padding:12px 16px;
+      border-radius:999px;
+      background:#ffffff10;
+      border:1px solid #ffffff28;
+      color:white;
+      text-decoration:none;
+      font-weight:800;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hearts" id="hearts"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="card">
+    <div class="hero">
+      <img src="https://images.openai.com/static-rsc-3/SuC0NWSvMm4TsEbE81tgJH8rNuXPRMDKB3clbv87I3-y8TGUhMeRyjqN1rsPeiI-DmF4hWaJR7QpYjbDXeXfzgETSUO0oIaw01y9dD9zZ3g?purpose=fullsize" alt="Cute teddy" />
+    </div>
+
+    <div class="badge">just a quick question…</div>
+    <h1>Miri will you be my valentine? 💘</h1>
+
+    <section class="button-zone" id="zone">
+      <button id="yesBtn">Yes 😇</button>
+      <button id="noBtn">No 😈</button>
+    </section>
+
+    <div class="hint" id="hint">Feel free to tap „No“</div>
+
+    <section class="result" id="result">
+      <h2>Yesss! 🎉💖</h2>
+      <a class="cta" id="cta" href="#" target="_blank">Write to me, „Yes„ 💬</a>
+      <p style="margin-top:10px;font-size:12px;opacity:.7">
+        PS: War klar das du „Ja" drückst.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    // floating hearts
+    const hearts = document.getElementById("hearts");
+    for(let i=0;i<26;i++){
+      const h=document.createElement("div");
+      h.className="heart";
+      h.style.left=Math.random()*100+"vw";
+      h.style.animationDuration=8+Math.random()*10+"s";
+      h.style.animationDelay=-Math.random()*12+"s";
+      hearts.appendChild(h);
+    }
+
+    // confetti
+    const confettiCanvas=document.getElementById("confettiCanvas");
+    const confettiInstance=confetti.create(confettiCanvas,{resize:true,useWorker:true});
+
+    // whatsapp
+    const cta=document.getElementById("cta");
+    cta.href="https://wa.me/491715616839?text="+encodeURIComponent("You're so cute. 💘");
+
+    const yesBtn=document.getElementById("yesBtn");
+    const noBtn=document.getElementById("noBtn");
+    const result=document.getElementById("result");
+    const hint=document.getElementById("hint");
+    const zone=document.getElementById("zone");
+
+    let yesScale=1;
+    function growYes(){
+      yesScale=Math.min(2.2,yesScale+0.12);
+      yesBtn.style.transform=`translateY(-50%) scale(${yesScale})`;
+    }
+
+    let noClicks=0;
+    noBtn.addEventListener("click",()=>{
+      noClicks++;
+      const scale=Math.max(0.35,1-noClicks*0.16);
+      noBtn.style.transform=`translateY(-50%) scale(${scale})`;
+      growYes();
+
+      if(noClicks===1) noBtn.textContent="Danke ";
+      if(noClicks===2) noBtn.textContent="Korrekt von dir ";
+      if(noClicks===3) noBtn.textContent="Weiß ich zu schätzen";
+
+      if(noClicks>=4){
+        noBtn.style.display="none";
+        hint.textContent="Oke bleibt wohl nur noch Ja.";
+      }
+
+      if(navigator.vibrate) navigator.vibrate(18);
+    });
+
+    yesBtn.addEventListener("click",()=>{
+      zone.style.display="none";
+      hint.style.display="none";
+      result.style.display="block";
+      confettiInstance({particleCount:260,spread:140,startVelocity:55});
+    });
+  </script>
+</body>
+</html>
