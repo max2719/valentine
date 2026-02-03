@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Eine Frage… 💘</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root{
+      --bg1:#0b1020;
+      --bg2:#1a0f2e;
+      --card:#ffffff10;
+      --stroke:#ffffff26;
+      --text:#f8fafc;
+      --muted:#cbd5e1;
+      --yes:#ff3d7f;
+      --yes2:#ff7aa8;
+      --no:#e2e8f0;
+      --noText:#0f172a;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100svh;
+      display:grid;
+      place-items:center;
+      padding:16px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 10%, #ff3d7f22, transparent 60%),
+        radial-gradient(900px 600px at 80% 20%, #7c3aed22, transparent 55%),
+        radial-gradient(1200px 800px at 50% 100%, #22c55e18, transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+
+    /* floating hearts background */
+    .hearts{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.22;
+      filter: blur(.1px);
+    }
+    .heart{
+      position:absolute;
+      width:16px; height:16px;
+      transform: rotate(45deg);
+      background: linear-gradient(135deg, var(--yes), #a855f7);
+      animation: floatUp linear infinite;
+      border-radius: 3px;
+    }
+    .heart:before,.heart:after{
+      content:"";
+      position:absolute;
+      width:16px; height:16px;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .heart:before{ left:-8px; top:0;}
+    .heart:after{ left:0; top:-8px;}
+    @keyframes floatUp{
+      from{ transform: translateY(110vh) rotate(45deg); }
+      to{ transform: translateY(-20vh) rotate(45deg); }
+    }
+
+    #confettiCanvas{
+      position:fixed; inset:0;
+      width:100vw; height:100vh;
+      pointer-events:none;
+      z-index:9999;
+    }
+
+    .card{
+      width:min(760px, 94vw);
+      padding:28px 22px;
+      border-radius:26px;
+      background: var(--card);
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero {
+      width: min(220px, 62%);
+      margin: 4px auto 10px;
+      padding: 10px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #ffffff12, #ffffff06);
+      border: 1px solid #ffffff22;
+      box-shadow: 0 18px 40px rgba(0,0,0,.28)
+                  0 0 0 6px rgba(255,61,127,.08);
+    }
+
+    .hero img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,.35));
+    }
+
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      margin-bottom:6px;
+    }
+    .badge{
+      font-weight:800;
+      font-size:13px;
+      letter-spacing:.3px;
+      color:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      background: linear-gradient(135deg, #ff3d7f, #a855f7);
+      box-shadow: 0 12px 30px rgba(255,61,127,.22);
+    }
+    h1{
+      margin:10px 0 6px;
+      font-size: clamp(28px, 4.5vw, 52px);
+      line-height:1.05;
+    }
+    p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size: 15px;
+    }
+
+    .sparkle{
+      width:min(420px, 90%);
+      margin: 14px auto 18px;
+      padding:14px 14px;
+      border-radius:16px;
+      border:1px dashed #ffffff2c;
+      color:#e2e8f0;
+      font-size:14px;
+    }
+
+    .button-zone{
+      position:relative;
+      width:min(520px, 92%);
+      height:150px;
+      margin: 0 auto;
+      touch-action:none;
+    }
+
+    button{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      padding:16px 24px;
+      border:none;
+      border-radius:999px;
+      font-weight:900;
+      font-size:18px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 12px 26px rgba(0,0,0,.35);
+      transition: transform .12s ease, filter .12s ease, background .12s ease;
+      letter-spacing:.2px;
+    }
+
+    #yesBtn{
+      left:18%;
+      color:white;
+      background: linear-gradient(135deg, var(--yes), var(--yes2));
+    }
+    #yesBtn:hover{ filter: brightness(1.05); }
+
+    #noBtn{
+      left:62%;
+      color:var(--noText);
+      background: var(--no);
+    }
+
+    .hint{
+      margin-top:12px;
+      opacity:.8;
+      font-size:13px;
+    }
+
+    .result{
+      display:none;
+      margin-top:18px;
+      animation: pop .35s ease;
+    }
+    .result h2{
+      margin: 6px 0 8px;
+      font-size: clamp(30px, 4.7vw, 54px);
+    }
+    .result .msg{
+      color:#e2e8f0;
+      margin:0 auto;
+      width:min(520px, 92%);
+      line-height:1.45;
+    }
+    .cta{
+      margin-top:14px;
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid #ffffff28;
+      background:#ffffff10;
+      color:#fff;
+      text-decoration:none;
+      font-weight:800;
+    }
+    .cta:hover{ background:#ffffff18; }
+
+    @keyframes pop{
+      from{ transform: scale(.96); opacity: 0;}
+      to{ transform: scale(1); opacity: 1;}
+    }
+
+    footer{
+      margin-top: 14px;
+      font-size: 12px;
+      color:#cbd5e1aa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hearts" id="hearts"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <main class="card">
+    <div class="hero">
+      <img
+      src="https://images.openai.com/static-rsc-3/SuC0NWSvMm4TsEbE81tgJH8rNuXPRMDKB3clbv87I3-y8TGUhMeRyjqN1rsPeiI-DmF4hWaJR7QpYjbDXeXfzgETSUO0oIaw01y9dD9zZ3g?purpose=fullsize"
+      alt="Cute illustration"
+      loading="lazy"/>
+      </div>
+    <div class="top">
+      <span class="badge">nur eine kleine Frage…</span>
+    </div>
+
+    <h1>Miri will you be my valentine? 💘</h1>
+
+    <section class="button-zone" id="zone">
+      <button id="yesBtn">Ja 😇</button>
+      <button id="noBtn">Nein 😈</button>
+    </section>
+
+    <div class="hint" id="hint">Tipp: Versuch mal, „Nein“ zu fangen… 😅</div>
+
+    <section class="result" id="result">
+      <h2>Yesss! 🎉💖</h2>
+
+      <!-- Optional: WhatsApp-Link anpassen -->
+      <a class="cta" id="cta" href="#" target="_blank" rel="noopener">
+        Schreib mir „Ja“ auf WhatsApp 💬
+      </a>
+
+      <footer>PS: Dieses „Nein“ war von Anfang an chancenlos.</footer>
+    </section>
+  </main>
+
+  <script>
+    // ====== BACKGROUND HEARTS ======
+    const hearts = document.getElementById("hearts");
+    for (let i = 0; i < 26; i++){
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.style.left = Math.random() * 100 + "vw";
+      h.style.animationDuration = (8 + Math.random() * 10) + "s";
+      h.style.animationDelay = (-Math.random() * 12) + "s";
+      h.style.transform = `translateY(${(Math.random()*120)|0}vh) rotate(45deg)`;
+      h.style.opacity = (0.25 + Math.random()*0.6).toFixed(2);
+      h.style.width = h.style.height = (10 + Math.random()*18) + "px";
+      hearts.appendChild(h);
+    }
+
+    // ====== CONFETTI (FULL SCREEN CANVAS) ======
+    const confettiCanvas = document.getElementById("confettiCanvas");
+
+    function resizeConfettiCanvas() {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+      confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+      confettiCanvas.style.width = "100vw";
+      confettiCanvas.style.height = "100vh";
+    }
+    resizeConfettiCanvas();
+    window.addEventListener("resize", resizeConfettiCanvas);
+    window.addEventListener("orientationchange", () => setTimeout(resizeConfettiCanvas, 150));
+
+    const confettiInstance = confetti.create(confettiCanvas, { resize:false, useWorker:true });
+
+    function confettiBurst() {
+      const end = Date.now() + 1600;
+      (function frame(){
+        confettiInstance({
+          particleCount: 10,
+          spread: 85,
+          startVelocity: 42,
+          ticks: 170,
+          origin: { x: Math.random(), y: Math.random() * 0.35 }
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
+      setTimeout(() => {
+        confettiInstance({
+          particleCount: 320,
+          spread: 150,
+          startVelocity: 60,
+          ticks: 240,
+          origin: { x: 0.5, y: 0.55 }
+        });
+      }, 280);
+    }
+
+    // ====== BUTTON LOGIC ======
+    const zone = document.getElementById("zone");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn  = document.getElementById("noBtn");
+    const result = document.getElementById("result");
+    const hint   = document.getElementById("hint");
+    const cta    = document.getElementById("cta");
+
+    // OPTIONAL WhatsApp link:
+    // Ersetze 49DEINENUMMER durch deine Nummer im Format: Ländercode + Nummer ohne 0/+
+    // Beispiel: 491751234567
+    const whatsappNumber = "491715616839";
+    const whatsappText = encodeURIComponent("Okay… ich hab Ja geklickt 💘");
+    cta.href = `https://wa.me/${whatsappNumber}?text=${whatsappText}`;
+
+    // Yes grows a bit each time No runs away
+    let yesScale = 1;
+    function growYes(){
+      yesScale = Math.min(2.3, yesScale + 0.1);
+      yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
+    }
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function moveNo(px, py){
+      const z = zone.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      let dx = (b.left + b.width/2) - px;
+      let dy = (b.top  + b.height/2) - py;
+      let mag = Math.hypot(dx, dy) || 1;
+      dx /= mag; dy /= mag;
+
+      let newLeft = (b.left - z.left) + dx * 160;
+      let newTop  = (b.top  - z.top ) + dy * 160;
+
+      newLeft = clamp(newLeft, 0, z.width - b.width);
+      newTop  = clamp(newTop,  0, z.height - b.height);
+
+      noBtn.style.left = newLeft + "px";
+      noBtn.style.top  = newTop  + "px";
+      noBtn.style.transform = "none";
+
+      growYes();
+    }
+
+    zone.addEventListener("pointermove", (e) => {
+      const b = noBtn.getBoundingClientRect();
+      const d = Math.hypot(
+        (b.left + b.width/2) - e.clientX,
+        (b.top  + b.height/2) - e.clientY
+      );
+      if (d < 150) moveNo(e.clientX, e.clientY);
+    });
+
+    noBtn.addEventListener("click", (e) => e.preventDefault());
+
+    yesBtn.addEventListener("click", () => {
+      zone.style.display = "none";
+      hint.style.display = "none";
+      result.style.display = "block";
+      resizeConfettiCanvas();
+      confettiBurst();
+    });
+  </script>
+</body>
+</html>
